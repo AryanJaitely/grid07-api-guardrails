@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: grid07-api-guardrails
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/grid07db
+    username: grid07user
+    password: grid07pass
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+server:
+  port: 8080
+
+# ttl values in seconds
+app:
+  redis:
+    cooldown-ttl: 600
+    notif-cooldown-ttl: 900
+  guardrails:
+    max-bot-replies: 100
+    max-comment-depth: 20
+  scheduler:
+    notif-sweep-cron: "0 */5 * * * *"
