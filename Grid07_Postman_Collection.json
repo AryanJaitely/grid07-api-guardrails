@@ -1,0 +1,117 @@
+{
+  "info": {
+    "name": "Grid07 API Guardrails",
+    "_postman_id": "grid07-collection-v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "postId",  "value": "1" },
+    { "key": "userId",  "value": "1" },
+    { "key": "botId",   "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/setup/users",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"alice\",\n  \"isPremium\": true\n}" }
+          }
+        },
+        {
+          "name": "Create Bot",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/setup/bots",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Aria\",\n  \"personaDescription\": \"A friendly assistant bot\"\n}" }
+          }
+        },
+        {
+          "name": "List Users",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/setup/users" }
+        },
+        {
+          "name": "List Bots",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/setup/bots" }
+        }
+      ]
+    },
+    {
+      "name": "Phase 1 - Core API",
+      "item": [
+        {
+          "name": "Create Post",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/posts",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"content\": \"my first post!\",\n  \"authorUserId\": {{userId}}\n}" }
+          }
+        },
+        {
+          "name": "Add Human Comment",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/posts/{{postId}}/comments",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"content\": \"nice post!\",\n  \"authorUserId\": {{userId}},\n  \"depthLevel\": 0\n}" }
+          }
+        },
+        {
+          "name": "Like Post",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/posts/{{postId}}/like",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"userId\": {{userId}}\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 2 - Guardrails",
+      "item": [
+        {
+          "name": "Bot Comment (should succeed)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/posts/{{postId}}/comments",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"content\": \"hello from a bot\",\n  \"authorBotId\": {{botId}},\n  \"depthLevel\": 0,\n  \"targetHumanId\": {{userId}}\n}" }
+          }
+        },
+        {
+          "name": "Bot Comment Again (cooldown - should 429)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/posts/{{postId}}/comments",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"content\": \"spamming again\",\n  \"authorBotId\": {{botId}},\n  \"depthLevel\": 0,\n  \"targetHumanId\": {{userId}}\n}" }
+          }
+        },
+        {
+          "name": "Bot Comment Too Deep (depth 21 - should 429)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/posts/{{postId}}/comments",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"content\": \"way too deep\",\n  \"authorBotId\": {{botId}},\n  \"depthLevel\": 21\n}" }
+          }
+        },
+        {
+          "name": "Get Virality Score",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/posts/{{postId}}/virality"
+          }
+        }
+      ]
+    }
+  ]
+}
